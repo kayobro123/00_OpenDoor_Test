@@ -28,6 +28,9 @@ private:
 	/// Ray-Cast and grab whatever is in reach
 	void Grab();
 
+	/// Called when grab is released
+	void Release();
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
