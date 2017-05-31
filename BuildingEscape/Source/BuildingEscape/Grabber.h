@@ -31,6 +31,15 @@ private:
 	/// Called when grab is released
 	void Release();
 
+	/// Find (assumed) attached physics handle
+	void FindPhysicsHandleComponent();
+
+	/// Setup (assumed) attached component
+	void SetupInputComponent();
+
+	/// Return hit for the first physics body in reach
+	FHitResult GetFirstPhysicsBodyInReach() const;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
