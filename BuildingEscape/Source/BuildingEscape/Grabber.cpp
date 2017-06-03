@@ -17,17 +17,24 @@ void UGrabber::Grab()
 	UE_LOG(LogTemp, Warning, TEXT("Grab Pressed"));
 
 	/// LINE TRACE and see if we reach any actors with physics body collition channel
-	GetFirstPhysicsBodyInReach();
+	auto HitResult = GetFirstPhysicsBodyInReach();
+	auto ComponentToGrab = HitResult.GetComponent();
+	auto ActorHit = HitResult.GetActor();
+	struct FRotator Rotator {0.0f, 0.0f, 0.0f};
 
 	/// If we hit something, attach a physics handle
-		// TODO Attach physics handle
+	if (ActorHit != nullptr)
+	{
+		/// Attach the Physics Handle
+		PhysicsHandle->GrabComponentAtLocationWithRotation(ComponentToGrab, NAME_None, ComponentToGrab->GetOwner()->GetActorLocation(), Rotator);
+	}
 };
 
 void UGrabber::Release()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grab Released"));
 
-	//TODO Release physics handle
+	PhysicsHandle->ReleaseComponent();
 
 };
 
@@ -86,7 +93,7 @@ FHitResult UGrabber::GetFirstPhysicsBodyInReach() const
 	FCollisionQueryParams TraceParameters(FName(TEXT("")), false, GetOwner());
 
 	/// Line Trace (AKA Ray-Cast) out to reach distance
-	FHitResult Hit;
+	FHitResult  Hit;
 	GetWorld()->LineTraceSingleByObjectType(OUT Hit, PlayerViewPointLocation, LineTraceEnd, FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody), TraceParameters);
 
 	/// See what we've hit 
@@ -96,7 +103,7 @@ FHitResult UGrabber::GetFirstPhysicsBodyInReach() const
 		UE_LOG(LogTemp, Warning, TEXT("Line trace hit: %s"), *(ActorHit->GetName()));
 	}
 
-	return FHitResult();
+	return Hit;
 }
 
 // Called every frame
@@ -104,8 +111,19 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	/// Get player view point this tick
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
+
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(OUT PlayerViewPointLocation, OUT PlayerViewPointRotation);
+
+	FVector LineTraceEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
+
 	// If the physics handle is attached 
+	if (PhysicsHandle != nullptr)
+	{
 		// Move the object we're holding
-	
+		PhysicsHandle->SetTargetLocation(LineTraceEnd);
+	}
 }
 
